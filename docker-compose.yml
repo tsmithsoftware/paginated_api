@@ -1,0 +1,45 @@
+version: '3.9'
+# access pgadmin4 through localhost:15432, add postgres db using ip address of test_api_default bridge network 
+# docker network inspect test_api_backend (subnet address)
+# use this to connect through the pgadmin4 web fe (login to fe using pgadmin creds)
+# add server by user user and password example and ip test_api_backend gateway ip
+
+services:
+  db:
+    build: ./db
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./data:/db/data
+    networks:
+      backend:
+        aliases:
+          - db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_DB: db
+      POSTGRES_PASSWORD: example
+
+  pg_admin:
+    image: dpage/pgadmin4:latest
+    restart: always
+    container_name: pgadmin4
+    ports:
+      - "15432:80"
+    environment:
+      - GUNICORN_THREADS=1
+      - PGADMIN_DEFAULT_EMAIL=tijak@protonmail.ch
+      - PGADMIN_DEFAULT_PASSWORD=does_not_matter
+    depends_on:
+      - db
+    links:
+      - "db:pgsql-server"
+    networks:
+        backend:
+          aliases:
+            - pg_admin
+
+networks:
+  backend:
+   driver: "bridge"
