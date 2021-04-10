@@ -204,9 +204,13 @@ visit.belongsTo(pass, { foreignKey: 'passid' });
 app.get('/visits', async (req, res) => {
     if (req.query.page == null || req.query.limit == null) {
         console.log("returning default set");
-        const visits = await visit.findAll();
+        const visits = await visit.findAndCountAll();
         var result = {};
-        result.visits = visits;
+        result.total_pages = 1;
+        result.total_results = visits.count;
+        result.page = 1;
+        result.per_page = visits.count;
+        result.visits = visits.rows;
         res.json(result);
     } else {
         const page = parseInt(req.query.page)
@@ -226,8 +230,10 @@ app.get('/visits', async (req, res) => {
             offset: startIndex
         });
         var result = {};
-        result.count = visits.count;
+        result.total_pages =Math.ceil(visits.count/limit);
+        result.total_results = visits.count;
         result.page = page;
+        result.per_page = limit;
         result.visits = visits.rows;
         res.json(result);
     }
@@ -236,20 +242,17 @@ app.get('/visits', async (req, res) => {
 app.get('/passes', async (req, res) => {
     if (req.query.page == null || req.query.limit == null) {
         console.log("returning default set");
-        const passes = await pass.findAll();
+        const passes = await pass.findAndCountAll();
         var result = {};
-        result.passes = passes;
+        result.total_pages = 1;
+        result.total_results = passes.count;
+        result.page = 1;
+        result.per_page = passes.count;
+        result.passes = passes.rows;
         res.json(result);
     } else {
         const page = parseInt(req.query.page)
         const limit = parseInt(req.query.limit)
-    
-        if (!(typeof page === "number")) {
-            page = 1;
-        } 
-        if (!(typeof limit === "number")) {
-            limit = 10;
-        } 
     
         const startIndex = (page - 1) * limit
         const endIndex = limit
@@ -262,8 +265,10 @@ app.get('/passes', async (req, res) => {
             offset: startIndex
         });
         var result = {};
-        result.count = passes.count;
+        result.total_pages = Math.ceil(passes.count/limit);
+        result.total_results = passes.count;
         result.page = page;
+        result.per_page = limit;
         result.passes = passes.rows;
         res.json(result);
     }
@@ -272,9 +277,14 @@ app.get('/passes', async (req, res) => {
 app.get('/sites', async (req,res) =>  {
     if (req.query.page == null || req.query.limit == null) {
         console.log("returning default set");
-        const sites = await site.findAll();
+        const sites = await site.findAndCountAll();
         var result = {};
-        result.sites = sites;
+        console.log("sites.count:"+ sites);
+        result.total_pages = 1;
+        result.total_results = sites.count;
+        result.page = 1;
+        result.per_page = sites.count;
+        result.sites = sites.rows;
         res.json(result);
     } else {
         const page = parseInt(req.query.page)
@@ -298,12 +308,16 @@ app.get('/sites', async (req,res) =>  {
                 limit: endIndex, 
                 offset: startIndex
             });
-    
+
         var result = {};
-        result.count = sites.count;
+        result.total_pages = Math.ceil(sites.count/limit);
+        result.total_results = sites.count;
         result.page = page;
+        result.per_page = limit;
         result.sites = sites.rows;
+
         res.json(result);
+
     }
 })
 
