@@ -40,6 +40,24 @@ services:
           aliases:
             - pg_admin
 
+  api:
+    build: ./api
+    command: >
+      bash -c 'while !</dev/tcp/db/5432; do sleep 1; done; env TZ="Europe/London" npm run devStart'
+    ports:
+      - "4000:4000"
+    depends_on:
+      - db
+      - pg_admin
+    environment:
+      DATABASE_URL: postgres://user:example@db:5432/db
+    links:
+      - db
+    networks:
+      backend:
+        aliases:
+          - application
+          
 networks:
   backend:
    driver: "bridge"
